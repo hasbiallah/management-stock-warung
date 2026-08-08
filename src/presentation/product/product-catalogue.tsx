@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 
 import type { CatalogueProduct } from "@/application/product/manage-product-catalogue";
+import { StockInForm } from "@/presentation/stock-movement/stock-in-form";
 
 type ProductDraft = {
   name: string;
@@ -92,17 +93,19 @@ export function ProductCatalogue({ initialProducts }: { initialProducts: Catalog
   }
 
   return (
-    <section className="catalogue" aria-labelledby="products-title">
-      <div className="catalogue-heading">
-        <div>
-          <span className="eyebrow">Katalog</span>
-          <h2 id="products-title">Produk aktif</h2>
-          <p>Stok dihitung dari semua Gerakan Stok yang tercatat.</p>
+    <>
+      <StockInForm products={products} onRecorded={loadProducts} />
+      <section className="catalogue" aria-labelledby="products-title">
+        <div className="catalogue-heading">
+          <div>
+            <span className="eyebrow">Katalog</span>
+            <h2 id="products-title">Produk aktif</h2>
+            <p>Stok dihitung dari semua Gerakan Stok yang tercatat.</p>
+          </div>
+          <button type="button" onClick={resetForm}>Tambah Produk</button>
         </div>
-        <button type="button" onClick={resetForm}>Tambah Produk</button>
-      </div>
 
-      <form className="product-form" onSubmit={submitProduct} aria-label={editing ? "Ubah Produk" : "Tambah Produk"}>
+        <form className="product-form" onSubmit={submitProduct} aria-label={editing ? "Ubah Produk" : "Tambah Produk"}>
         <h3>{editing ? `Ubah ${editing.name}` : "Tambah Produk"}</h3>
         {error ? <p className="notice error" role="alert">{error}</p> : null}
         <label htmlFor="product-name">Nama Produk<input id="product-name" value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} required /></label>
@@ -113,11 +116,11 @@ export function ProductCatalogue({ initialProducts }: { initialProducts: Catalog
           {editing ? <button type="button" className="secondary" onClick={resetForm}>Batal</button> : null}
           <button type="submit" disabled={isSaving}>{isSaving ? "Menyimpan…" : editing ? "Simpan perubahan" : "Simpan Produk"}</button>
         </div>
-      </form>
+        </form>
 
-      <label className="search" htmlFor="product-search">Cari Produk<input id="product-search" type="search" value={query} onChange={(event) => { const nextQuery = event.target.value; setQuery(nextQuery); void loadProducts(nextQuery); }} placeholder="Ketik nama Produk" /></label>
+        <label className="search" htmlFor="product-search">Cari Produk<input id="product-search" type="search" value={query} onChange={(event) => { const nextQuery = event.target.value; setQuery(nextQuery); void loadProducts(nextQuery); }} placeholder="Ketik nama Produk" /></label>
 
-      {products.length === 0 ? (
+        {products.length === 0 ? (
         <p className="empty-state">Belum ada Produk aktif yang sesuai.</p>
       ) : (
         <div className="product-table-wrap">
@@ -135,7 +138,8 @@ export function ProductCatalogue({ initialProducts }: { initialProducts: Catalog
             </tbody>
           </table>
         </div>
-      )}
-    </section>
+        )}
+      </section>
+    </>
   );
 }

@@ -1,10 +1,18 @@
 import { Prisma } from "@prisma/client";
 
-import type { StockMovementRepository } from "@/domain/stock-movement/stock-movement-repository";
+import type {
+  CreateStockMovement,
+  StockMovement,
+  StockMovementRepository,
+} from "@/domain/stock-movement/stock-movement-repository";
 
 import { prisma } from "./prisma-client";
 
 export class PrismaStockMovementRepository implements StockMovementRepository {
+  async create(input: CreateStockMovement): Promise<StockMovement> {
+    return prisma.stockMovement.create({ data: input });
+  }
+
   async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
     if (productIds.length === 0) {
       return {};

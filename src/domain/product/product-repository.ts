@@ -14,5 +14,6 @@ export interface ProductRepository {
   create(input: CreateProduct): Promise<Product>;
   update(id: string, input: UpdateProduct): Promise<Product | null>;
   deactivate(id: string): Promise<boolean>;
+  findActiveById(id: string): Promise<Product | null>;
   findActiveByName(query: string): Promise<Product[]>;
 }

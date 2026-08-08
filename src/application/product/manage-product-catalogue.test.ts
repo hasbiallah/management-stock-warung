@@ -13,6 +13,8 @@ import type {
   UpdateProduct,
 } from "@/domain/product/product-repository";
 import type {
+  CreateStockMovement,
+  StockMovement,
   StockMovementRepository,
 } from "@/domain/stock-movement/stock-movement-repository";
 
@@ -47,6 +49,10 @@ class InMemoryProductRepository implements ProductRepository {
     return true;
   }
 
+  async findActiveById(id: string): Promise<Product | null> {
+    return this.products.find((product) => product.id === id && product.active) ?? null;
+  }
+
   async findActiveByName(query: string): Promise<Product[]> {
     return this.products.filter(
       (product) => product.active && product.name.toLowerCase().includes(query.toLowerCase()),
@@ -56,6 +62,10 @@ class InMemoryProductRepository implements ProductRepository {
 
 class InMemoryStockMovementRepository implements StockMovementRepository {
   stocks: Record<string, number> = {};
+
+  async create(_: CreateStockMovement): Promise<StockMovement> {
+    throw new Error("Not used in this test.");
+  }
 
   async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
     return Object.fromEntries(productIds.map((productId) => [productId, this.stocks[productId] ?? 0]));
