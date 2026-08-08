@@ -1,41 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  ProductNotFoundError,
-  listRiwayatStok,
-  serialiseRiwayatStokToCsv,
-} from "./list-riwayat-stok";
-import type { Product, ProductRepository } from "@/domain/product/product-repository";
-import type {
-  CreateStockMovement,
-  StockMovement,
-  StockMovementRepository,
-  StockMovementWithStockAfter,
-} from "@/domain/stock-movement/stock-movement-repository";
-
-class InMemoryProductRepository implements ProductRepository {
-  constructor(private readonly products: Product[]) {}
-  async create(): Promise<Product> { throw new Error("not used"); }
-  async update(): Promise<Product | null> { throw new Error("not used"); }
-  async deactivate(): Promise<boolean> { throw new Error("not used"); }
-  async findActiveByName(): Promise<Product[]> { throw new Error("not used"); }
-  async findById(id: string): Promise<Product | null> {
-    return this.products.find((product) => product.id === id) ?? null;
-  }
-
-  async findActiveById(id: string): Promise<Product | null> {
-    return this.products.find((p) => p.id === id && p.active) ?? null;
-  }
-}
-
-class InMemoryStockMovementRepository implements StockMovementRepository {
-  constructor(private readonly rows: StockMovementWithStockAfter[]) {}
-  async create(): Promise<StockMovement> { throw new Error("not used"); }
-  async findCurrentStocks(): Promise<Record<string, number>> { throw new Error("not used"); }
-  async findByProductId(productId: string): Promise<StockMovementWithStockAfter[]> {
-    return this.rows.filter((row) => row.productId === productId);
-  }
-}
+import { InMemoryProductRepository, InMemoryStockMovementRepository } from "@/application/__tests__/in-memory-repositories";
+import { ProductNotFoundError, listRiwayatStok, serialiseRiwayatStokToCsv } from "./list-riwayat-stok";
+import type { StockMovementWithStockAfter } from "@/domain/stock-movement/stock-movement-repository";
 
 function makeMovement(partial: Partial<StockMovementWithStockAfter> & { id: string; productId: string; type: StockMovementWithStockAfter["type"]; }): StockMovementWithStockAfter {
   return {
@@ -74,9 +41,9 @@ describe("listRiwayatStok", () => {
       { id: "gula", name: "Gula", unit: "kg", sellingPrice: 1, minimumStock: 0, active: true },
     ]);
     const movements = new InMemoryStockMovementRepository([
-      makeMovement({ id: "1", productId: "gula", type: "MASUK", quantity: 10, stockAfter: 10 }),
-      makeMovement({ id: "2", productId: "gula", type: "KELUAR", quantity: 3, stockAfter: 7 }),
-      makeMovement({ id: "3", productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 5, reason: "Hitung fisik", stockAfter: 5 }),
+      makeMovement({ id: "1", productId: "gula", type: "MASUK", quantity: 10, createdAt: new Date("2026-01-01T00:00:00Z"), stockAfter: 10 }),
+      makeMovement({ id: "2", productId: "gula", type: "KELUAR", quantity: 3, createdAt: new Date("2026-01-02T00:00:00Z"), stockAfter: 7 }),
+      makeMovement({ id: "3", productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 5, reason: "Hitung fisik", createdAt: new Date("2026-01-03T00:00:00Z"), stockAfter: 5 }),
     ]);
 
     const entries = await listRiwayatStok({ productId: "gula" }, { products, movements });

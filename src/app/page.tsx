@@ -1,14 +1,13 @@
 import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
-import { hasOwnerAccount } from "@/application/owner-account/has-owner-account";
-import { PrismaOwnerAccountRepository } from "@/infrastructure/database/prisma-owner-account-repository";
 import { authOptions } from "@/app/auth";
+import { ownerAccountDependencies } from "@/presentation/owner-account/owner-account-dependencies";
 
 export const dynamic = "force-dynamic";
 
 export default async function Home() {
-  if (!(await hasOwnerAccount(new PrismaOwnerAccountRepository()))) {
+  if (!(await ownerAccountDependencies.hasOwnerAccount())) {
     redirect("/setup");
   }
 

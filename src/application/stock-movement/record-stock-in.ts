@@ -29,12 +29,12 @@ export async function recordStockIn(
     throw new InactiveProductError();
   }
 
+  const currentStock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
   const movement = await movements.create({
     productId: input.productId,
     type: "MASUK",
     quantity: input.quantity,
   });
-  const stock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
 
-  return { movement, stock };
+  return { movement, stock: currentStock + input.quantity };
 }

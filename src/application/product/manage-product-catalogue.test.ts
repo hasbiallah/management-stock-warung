@@ -1,85 +1,7 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  createProduct,
-  deactivateProduct,
-  listActiveProducts,
-  updateProduct,
-} from "./manage-product-catalogue";
-import type {
-  CreateProduct,
-  Product,
-  ProductRepository,
-  UpdateProduct,
-} from "@/domain/product/product-repository";
-import type {
-  StockMovementWithStockAfter,
-  CreateStockMovement,
-  StockMovement,
-  StockMovementRepository,
-} from "@/domain/stock-movement/stock-movement-repository";
-
-class InMemoryProductRepository implements ProductRepository {
-  products: Product[] = [];
-
-  async create(input: CreateProduct): Promise<Product> {
-    const product = { id: String(this.products.length + 1), active: true, ...input };
-    this.products.push(product);
-    return product;
-  }
-
-  async update(id: string, input: UpdateProduct): Promise<Product | null> {
-    const product = this.products.find((candidate) => candidate.id === id);
-
-    if (!product) {
-      return null;
-    }
-
-    Object.assign(product, input);
-    return product;
-  }
-
-  async deactivate(id: string): Promise<boolean> {
-    const product = this.products.find((candidate) => candidate.id === id);
-
-    if (!product) {
-      return false;
-    }
-
-    product.active = false;
-    return true;
-  }
-
-  async findById(id: string): Promise<Product | null> {
-    return this.products.find((product) => product.id === id) ?? null;
-  }
-
-  async findActiveById(id: string): Promise<Product | null> {
-    return this.products.find((product) => product.id === id && product.active) ?? null;
-  }
-
-  async findActiveByName(query: string): Promise<Product[]> {
-    return this.products.filter(
-      (product) => product.active && product.name.toLowerCase().includes(query.toLowerCase()),
-    );
-  }
-}
-
-class InMemoryStockMovementRepository implements StockMovementRepository {
-  stocks: Record<string, number> = {};
-
-  async create(_: CreateStockMovement): Promise<StockMovement> {
-    throw new Error("Not used in this test.");
-  }
-
-  async findByProductId(): Promise<StockMovementWithStockAfter[]> {
-    return [];
-  }
-
-  async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
-    return Object.fromEntries(productIds.map((productId) => [productId, this.stocks[productId] ?? 0]));
-  }
-}
+import { InMemoryProductRepository, InMemoryStockMovementRepository } from "@/application/__tests__/in-memory-repositories";
+import { createProduct, deactivateProduct, listActiveProducts, updateProduct } from "./manage-product-catalogue";
 
 describe("product catalogue", () => {
   it("creates a Produk with its catalogue details", async () => {
@@ -144,7 +66,7 @@ describe("product catalogue", () => {
       sellingPrice: 20_000,
       minimumStock: 2,
     });
-    movements.stocks[gula.id] = 2;
+    await movements.create({ productId: gula.id, type: "MASUK", quantity: 2 });
 
     await expect(listActiveProducts({ query: "gula" }, { products, movements })).resolves.toEqual([
       expect.objectContaining({

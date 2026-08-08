@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { catalogueDependencies, productDependencies } from "@/app/product-catalogue-dependencies";
-import { createProduct, listActiveProducts } from "@/application/product/manage-product-catalogue";
+
 import { productInputSchema } from "@/presentation/product/product-input";
+import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
 
 export async function GET(request: Request) {
   const query = new URL(request.url).searchParams.get("query") ?? "";
-  return NextResponse.json(await listActiveProducts({ query }, catalogueDependencies()));
+  return NextResponse.json(await catalogueUseCases.listActiveProducts({ query }));
 }
 
 export async function POST(request: Request) {
@@ -18,6 +18,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const product = await createProduct(input.data, productDependencies());
+  const product = await catalogueUseCases.createProduct(input.data);
   return NextResponse.json(product, { status: 201 });
 }

@@ -26,35 +26,26 @@ export async function recordOpname(
   input: { productId: string; quantityAfter: number; reason: string },
   { products, movements }: Dependencies,
 ): Promise<RecordOpnameResult> {
-  // Validate quantity - must be non-negative integer
   if (!Number.isInteger(input.quantityAfter) || input.quantityAfter < 0) {
     throw new InvalidOpnameQuantityError();
   }
 
-  // Validate reason - must not be empty or whitespace only
   if (!input.reason || input.reason.trim().length === 0) {
     throw new EmptyReasonError();
   }
 
-  // Validate product - must be active
   if (!(await products.findActiveById(input.productId))) {
     throw new InactiveProductError();
   }
 
-  // Get previous stock before recording opname
   const previousStock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
-
-  // Record the Opname movement with absolute quantity
   const movement = await movements.create({
     productId: input.productId,
     type: "OPNAME",
-    quantity: 0, // Opname doesn't use delta quantity
+    quantity: 0,
     quantityAfter: input.quantityAfter,
     reason: input.reason.trim(),
   });
 
-  // Get new stock after opname (should equal quantityAfter)
-  const stock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
-
-  return { movement, stock, previousStock };
+  return { movement, stock: input.quantityAfter, previousStock };
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import type { CatalogueProduct } from "@/application/product/manage-product-catalogue";
@@ -135,7 +136,7 @@ export function ProductCatalogue({ initialProducts }: { initialProducts: Catalog
                   <td><strong>{product.name}</strong><span>{product.unit} · Stok Minimum {product.minimumStock}</span></td>
                   <td>{formatPrice(product.sellingPrice)}</td>
                   <td><strong>{product.stock} {product.unit}</strong>{product.isLowStock ? <span className="low-stock">Stok Rendah</span> : null}</td>
-                  <td className="row-actions"><button type="button" className="secondary" onClick={() => { setEditing(product); setDraft(toDraft(product)); setError(undefined); }}>Ubah</button><button type="button" className="danger" onClick={() => void deactivate(product)}>Nonaktifkan</button></td>
+                  <td className="row-actions"><Link className="muted-link" href={`/dashboard/products/${product.id}/history`}>Riwayat</Link><button type="button" className="secondary" onClick={() => { setEditing(product); setDraft(toDraft(product)); setError(undefined); }}>Ubah</button><button type="button" className="danger" onClick={() => void deactivate(product)}>Nonaktifkan</button></td>
                 </tr>
               ))}
             </tbody>

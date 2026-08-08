@@ -48,7 +48,6 @@ export async function recordStockOut(
     type: "KELUAR",
     quantity: input.quantity,
   });
-  const stock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
 
-  return { movement, stock };
+  return { movement, stock: currentStock - input.quantity };
 }

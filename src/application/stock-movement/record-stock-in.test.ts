@@ -1,61 +1,15 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  InactiveProductError,
-  recordStockIn,
-} from "./record-stock-in";
-import type { Product, ProductRepository } from "@/domain/product/product-repository";
-import type {
-  CreateStockMovement,
-  StockMovement,
-  StockMovementRepository,
-  StockMovementWithStockAfter,
-} from "@/domain/stock-movement/stock-movement-repository";
+import { InMemoryProductRepository, InMemoryStockMovementRepository } from "@/application/__tests__/in-memory-repositories";
+import { InactiveProductError, recordStockIn } from "./record-stock-in";
+import type { Product } from "@/domain/product/product-repository";
+import type { StockMovement } from "@/domain/stock-movement/stock-movement-repository";
 
-class InMemoryProductRepository implements ProductRepository {
-  constructor(private readonly products: Product[]) {}
-
-  async create(): Promise<Product> { throw new Error("not used"); }
-  async update(): Promise<Product | null> { throw new Error("not used"); }
-  async deactivate(): Promise<boolean> { throw new Error("not used"); }
-  async findActiveByName(): Promise<Product[]> { throw new Error("not used"); }
-  async findById(id: string): Promise<Product | null> {
-    return this.products.find((product) => product.id === id) ?? null;
-  }
-
-  async findActiveById(id: string): Promise<Product | null> {
-    return this.products.find((product) => product.id === id && product.active) ?? null;
-  }
-}
-
-class InMemoryStockMovementRepository implements StockMovementRepository {
-  movements: StockMovement[] = [];
-
-  async create(input: CreateStockMovement): Promise<StockMovement> {
-    const movement: StockMovement = { id: String(this.movements.length + 1), createdAt: new Date(), ...input };
-    this.movements.push(movement);
-    return movement;
-  }
-
-  async findByProductId(): Promise<StockMovementWithStockAfter[]> { throw new Error("not used"); }
-
-  async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
-    return Object.fromEntries(productIds.map((productId) => [
-      productId,
-      this.movements
-        .filter((movement) => movement.productId === productId)
-        .reduce((stock, movement) => stock + movement.quantity, 0),
-    ]));
-  }
-}
-
-function expectMovement(actual: StockMovement, expected: { id: string; productId: string; type: StockMovement["type"]; quantity: number; quantityAfter?: number | null; reason?: string | null }) {
+function expectMovement(actual: StockMovement, expected: { id: string; productId: string; type: StockMovement["type"]; quantity: number }) {
   expect(actual.id).toBe(expected.id);
   expect(actual.productId).toBe(expected.productId);
   expect(actual.type).toBe(expected.type);
   expect(actual.quantity).toBe(expected.quantity);
-  expect(actual.quantityAfter ?? null).toBe(expected.quantityAfter ?? null);
-  expect(actual.reason ?? null).toBe(expected.reason ?? null);
   expect(actual.createdAt).toBeInstanceOf(Date);
 }
 
@@ -79,7 +33,7 @@ describe("recordStockIn", () => {
   it("does not record Stok Masuk for an inactive Produk", async () => {
     const products = new InMemoryProductRepository([
       { id: "lama", name: "Produk Lama", unit: "pcs", sellingPrice: 1_000, minimumStock: 1, active: false },
-    ]);
+    ] satisfies Product[]);
     const movements = new InMemoryStockMovementRepository();
 
     await expect(recordStockIn({ productId: "lama", quantity: 5 }, { products, movements })).rejects.toBeInstanceOf(InactiveProductError);

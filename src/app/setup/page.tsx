@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation";
 
-import { hasOwnerAccount } from "@/application/owner-account/has-owner-account";
-import { PrismaOwnerAccountRepository } from "@/infrastructure/database/prisma-owner-account-repository";
 import { SetupForm } from "@/presentation/auth/setup-form";
+import { ownerAccountDependencies } from "@/presentation/owner-account/owner-account-dependencies";
 
 export const dynamic = "force-dynamic";
 
 export default async function SetupPage() {
-  if (await hasOwnerAccount(new PrismaOwnerAccountRepository())) {
+  if (await ownerAccountDependencies.hasOwnerAccount()) {
     redirect("/login");
   }
 

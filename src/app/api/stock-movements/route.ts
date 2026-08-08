@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
 
-import { catalogueDependencies } from "@/app/product-catalogue-dependencies";
-import {
-  InactiveProductError,
-  InvalidStockInQuantityError,
-  recordStockIn,
-} from "@/application/stock-movement/record-stock-in";
+import { InactiveProductError, InvalidStockInQuantityError } from "@/application/stock-movement/record-stock-in";
 import { stockInInputSchema } from "@/presentation/stock-movement/stock-movement-input";
+import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
 
 export async function POST(request: Request) {
   const input = stockInInputSchema.safeParse(await request.json());
@@ -19,7 +15,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    return NextResponse.json(await recordStockIn(input.data, catalogueDependencies()), { status: 201 });
+    return NextResponse.json(await catalogueUseCases.recordStockIn(input.data), { status: 201 });
   } catch (error) {
     if (error instanceof InactiveProductError) {
       return NextResponse.json({ error: error.message }, { status: 404 });

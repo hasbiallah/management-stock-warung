@@ -2,10 +2,9 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/app/auth";
-import { catalogueDependencies } from "@/app/product-catalogue-dependencies";
-import { listActiveProducts } from "@/application/product/manage-product-catalogue";
 import { LogoutButton } from "@/presentation/auth/logout-button";
 import { ProductCatalogue } from "@/presentation/product/product-catalogue";
+import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +15,7 @@ export default async function DashboardPage() {
     redirect("/login");
   }
 
-  const products = await listActiveProducts({}, catalogueDependencies());
+  const products = await catalogueUseCases.listActiveProducts({});
 
   return (
     <main className="dashboard">

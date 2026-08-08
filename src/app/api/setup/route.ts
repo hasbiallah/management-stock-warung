@@ -2,12 +2,8 @@ import { Prisma } from "@prisma/client";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import {
-  SetupAlreadyCompletedError,
-  createOwnerAccount,
-} from "@/application/owner-account/create-owner-account";
-import { PrismaOwnerAccountRepository } from "@/infrastructure/database/prisma-owner-account-repository";
-import { bcryptPasswordHasher } from "@/infrastructure/security/bcrypt-password-hasher";
+import { SetupAlreadyCompletedError } from "@/application/owner-account/create-owner-account";
+import { ownerAccountDependencies } from "@/presentation/owner-account/owner-account-dependencies";
 
 const setupInput = z.object({
   email: z.string().trim().email("Masukkan alamat email yang valid."),
@@ -25,11 +21,7 @@ export async function POST(request: Request) {
   }
 
   try {
-    await createOwnerAccount(input.data, {
-      repository: new PrismaOwnerAccountRepository(),
-      hash: bcryptPasswordHasher.hash,
-    });
-
+    await ownerAccountDependencies.createOwnerAccount(input.data);
     return NextResponse.json({ success: true }, { status: 201 });
   } catch (error) {
     if (
