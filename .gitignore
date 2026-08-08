@@ -5,3 +5,10 @@ docs/
 # Agent skills & config
 .agents/
 skills-lock.json
+
+# Application secrets and generated files
+.env
+.env.local
+node_modules/
+.next/
+coverage/
