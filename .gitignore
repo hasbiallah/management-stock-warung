@@ -1,0 +1,7 @@
+# Docs & planning
+*.md
+docs/
+
+# Agent skills & config
+.agents/
+skills-lock.json
