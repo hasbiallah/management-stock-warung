@@ -3,21 +3,17 @@ import type {
   StockMovement,
   StockMovementRepository,
 } from "@/domain/stock-movement/stock-movement-repository";
-import { InactiveProductError } from "./stock-movement-errors";
+import {
+  InactiveProductError,
+  InvalidStockOutQuantityError,
+  InsufficientStockError,
+} from "./stock-movement-errors";
 
-export { InactiveProductError } from "./stock-movement-errors";
-
-export class InvalidStockQuantityError extends Error {
-  constructor() {
-    super("Jumlah Stok Keluar harus berupa bilangan bulat lebih dari nol.");
-  }
-}
-
-export class InsufficientStockError extends Error {
-  constructor() {
-    super("Stok tersedia tidak mencukupi.");
-  }
-}
+export {
+  InactiveProductError,
+  InvalidStockOutQuantityError,
+  InsufficientStockError,
+} from "./stock-movement-errors";
 
 type Dependencies = {
   products: ProductRepository;
@@ -34,7 +30,7 @@ export async function recordStockOut(
   { products, movements }: Dependencies,
 ): Promise<RecordStockOutResult> {
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
-    throw new InvalidStockQuantityError();
+    throw new InvalidStockOutQuantityError();
   }
 
   if (!(await products.findActiveById(input.productId))) {

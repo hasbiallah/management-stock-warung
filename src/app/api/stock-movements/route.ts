@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { catalogueDependencies } from "@/app/product-catalogue-dependencies";
 import {
   InactiveProductError,
-  InvalidStockQuantityError,
+  InvalidStockInQuantityError,
   recordStockIn,
 } from "@/application/stock-movement/record-stock-in";
 import { stockInInputSchema } from "@/presentation/stock-movement/stock-movement-input";
@@ -25,7 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
 
-    if (error instanceof InvalidStockQuantityError) {
+    if (error instanceof InvalidStockInQuantityError) {
       return NextResponse.json({ error: error.message }, { status: 400 });
     }
 

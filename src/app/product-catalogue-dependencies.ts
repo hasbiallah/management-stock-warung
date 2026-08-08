@@ -5,6 +5,11 @@ export function productDependencies() {
   return { products: new PrismaProductRepository() };
 }
 
-export function catalogueDependencies() {
+export function productWithStockMovementDependencies() {
   return { ...productDependencies(), movements: new PrismaStockMovementRepository() };
+}
+
+// @deprecated Use productWithStockMovementDependencies instead
+export function catalogueDependencies() {
+  return productWithStockMovementDependencies();
 }
