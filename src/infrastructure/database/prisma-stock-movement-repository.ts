@@ -1,4 +1,4 @@
-import { applyMovement } from "@/domain/stock-movement/stock-ledger";
+import { computeCurrentStock, computeStockHistory } from "@/domain/stock-movement/stock-calculator";
 import type {
   CreateStockMovement,
   StockMovement,
@@ -34,14 +34,9 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
       orderBy: [{ createdAt: "asc" }, { id: "asc" }],
     });
 
-    let stock = 0;
-    const entries: StockMovementWithStockAfter[] = [];
+    const entries = computeStockHistory(rows);
+    const current = computeCurrentStock(rows);
 
-    for (const row of rows) {
-      stock = applyMovement(stock, row);
-      entries.push({ ...row, stockAfter: stock });
-    }
-
-    return { entries, current: stock };
+    return { entries, current };
   }
 }

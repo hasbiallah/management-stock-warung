@@ -2,9 +2,10 @@ import { redirect } from "next/navigation";
 
 import { getServerSession } from "next-auth";
 
-import { ProductNotFoundError } from "@/application/stock-movement/list-riwayat-stok";
+import { ProductNotFoundError, listRiwayatStok } from "@/application/stock-movement/list-riwayat-stok";
 import { authOptions } from "@/app/auth";
-import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
+import { PrismaProductRepository } from "@/infrastructure/database/prisma-product-repository";
+import { PrismaStockMovementRepository } from "@/infrastructure/database/prisma-stock-movement-repository";
 import { RiwayatStokList } from "@/presentation/stock-movement/riwayat-stok-list";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +19,9 @@ export default async function HistoryPage({ params }: PageProps) {
   }
 
   try {
-    const entries = await catalogueUseCases.listRiwayatStok({ productId: params.id });
+    const products = new PrismaProductRepository();
+    const movements = new PrismaStockMovementRepository();
+    const entries = await listRiwayatStok({ productId: params.id }, { products, movements });
 
     return (
       <main className="dashboard">

@@ -1,7 +1,8 @@
 import { redirect } from "next/navigation";
 
 import { LoginForm } from "@/presentation/auth/login-form";
-import { ownerAccountDependencies } from "@/presentation/owner-account/owner-account-dependencies";
+import { hasOwnerAccount } from "@/application/owner-account/has-owner-account";
+import { PrismaOwnerAccountRepository } from "@/infrastructure/database/prisma-owner-account-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -10,7 +11,8 @@ export default async function LoginPage({
 }: {
   searchParams: { setup?: string };
 }) {
-  if (!(await ownerAccountDependencies.hasOwnerAccount())) {
+  const repository = new PrismaOwnerAccountRepository();
+  if (!(await hasOwnerAccount(repository))) {
     redirect("/setup");
   }
 

@@ -1,4 +1,4 @@
-import { applyMovement } from "@/domain/stock-movement/stock-ledger";
+import { computeCurrentStock, computeStockHistory } from "@/domain/stock-movement/stock-calculator";
 import type {
   CreateProduct,
   Product,
@@ -80,25 +80,14 @@ export class InMemoryStockMovementRepository implements StockMovementRepository 
       .filter((movement) => movement.productId === productId)
       .sort((a, b) => a.createdAt.getTime() - b.createdAt.getTime());
 
-    let stock = 0;
-    const withStockAfter: StockMovementWithStockAfter[] = [];
-    for (const row of rows) {
-      stock = applyMovement(stock, row);
-      withStockAfter.push({ ...row, stockAfter: stock });
-    }
-
-    return withStockAfter;
+    return computeStockHistory(rows);
   }
 
   async computeStocks(productIds: string[]): Promise<Record<string, number>> {
     const result: Record<string, number> = {};
     for (const productId of productIds) {
-      let stock = 0;
-      for (const movement of this.movements) {
-        if (movement.productId !== productId) continue;
-        stock = applyMovement(stock, movement);
-      }
-      result[productId] = stock;
+      const movements = this.movements.filter((movement) => movement.productId === productId);
+      result[productId] = computeCurrentStock(movements);
     }
     return result;
   }

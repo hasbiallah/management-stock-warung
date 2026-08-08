@@ -46,10 +46,19 @@ export function deactivateProduct(id: string, { products }: ProductDependencies)
 }
 
 export async function listActiveProducts(
-  { query = "" }: { query?: string },
+  { query = "", includeStock = true }: { query?: string; includeStock?: boolean },
   { products, movements }: CatalogueDependencies,
 ): Promise<CatalogueProduct[]> {
   const activeProducts = await products.findActiveByName(query.trim());
+
+  if (!includeStock) {
+    return activeProducts.map((product) => ({
+      ...product,
+      stock: 0,
+      isLowStock: false,
+    }));
+  }
+
   const productIds = activeProducts.map((product) => product.id);
   const currentStocks = await movements.computeStocks(productIds);
 
