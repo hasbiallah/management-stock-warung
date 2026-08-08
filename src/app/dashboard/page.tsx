@@ -2,7 +2,10 @@ import { getServerSession } from "next-auth";
 import { redirect } from "next/navigation";
 
 import { authOptions } from "@/app/auth";
+import { catalogueDependencies } from "@/app/product-catalogue-dependencies";
+import { listActiveProducts } from "@/application/product/manage-product-catalogue";
 import { LogoutButton } from "@/presentation/auth/logout-button";
+import { ProductCatalogue } from "@/presentation/product/product-catalogue";
 
 export const dynamic = "force-dynamic";
 
@@ -12,6 +15,8 @@ export default async function DashboardPage() {
   if (!session) {
     redirect("/login");
   }
+
+  const products = await listActiveProducts({}, catalogueDependencies());
 
   return (
     <main className="dashboard">
@@ -23,7 +28,8 @@ export default async function DashboardPage() {
           </div>
           <LogoutButton />
         </header>
-        <p>Anda masuk sebagai {session.user?.email}. Fitur manajemen Produk akan tampil di sini.</p>
+        <p>Anda masuk sebagai {session.user?.email}.</p>
+        <ProductCatalogue initialProducts={products} />
       </section>
     </main>
   );

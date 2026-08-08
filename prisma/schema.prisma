@@ -14,3 +14,35 @@ model OwnerAccount {
   passwordHash String
   createdAt    DateTime @default(now())
 }
+
+model Product {
+  id             String          @id @default(cuid())
+  name           String
+  unit           String
+  sellingPrice   Decimal         @db.Decimal(14, 2)
+  minimumStock   Int
+  active         Boolean         @default(true)
+  createdAt      DateTime        @default(now())
+  stockMovements StockMovement[]
+
+  @@index([active, name])
+}
+
+model StockMovement {
+  id            String            @id @default(cuid())
+  productId     String
+  type          StockMovementType
+  quantity      Int
+  quantityAfter Int?
+  reason        String?
+  createdAt     DateTime          @default(now())
+  product       Product           @relation(fields: [productId], references: [id], onDelete: Restrict)
+
+  @@index([productId, createdAt])
+}
+
+enum StockMovementType {
+  MASUK
+  KELUAR
+  OPNAME
+}
