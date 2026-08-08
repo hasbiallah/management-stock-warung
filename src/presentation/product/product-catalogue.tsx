@@ -3,6 +3,7 @@
 import { FormEvent, useState } from "react";
 
 import type { CatalogueProduct } from "@/application/product/manage-product-catalogue";
+import { OpnameForm } from "@/presentation/stock-movement/opname-form";
 import { StockMovementForm } from "@/presentation/stock-movement/stock-movement-form";
 
 type ProductDraft = {
@@ -96,6 +97,7 @@ export function ProductCatalogue({ initialProducts }: { initialProducts: Catalog
     <>
       <StockMovementForm products={products} movementType="MASUK" onRecorded={loadProducts} />
       <StockMovementForm products={products} movementType="KELUAR" onRecorded={loadProducts} />
+      <OpnameForm products={products} onRecorded={loadProducts} />
       <section className="catalogue" aria-labelledby="products-title">
         <div className="catalogue-heading">
           <div>

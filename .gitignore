@@ -4,6 +4,7 @@ docs/
 
 # Agent skills & config
 .agents/
+.kiro/
 skills-lock.json
 
 # Application secrets and generated files
