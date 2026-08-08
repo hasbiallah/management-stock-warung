@@ -9,7 +9,13 @@ export { InactiveProductError } from "./stock-movement-errors";
 
 export class InvalidStockQuantityError extends Error {
   constructor() {
-    super("Jumlah Stok Masuk harus berupa bilangan bulat lebih dari nol.");
+    super("Jumlah Stok Keluar harus berupa bilangan bulat lebih dari nol.");
+  }
+}
+
+export class InsufficientStockError extends Error {
+  constructor() {
+    super("Stok tersedia tidak mencukupi.");
   }
 }
 
@@ -18,15 +24,15 @@ type Dependencies = {
   movements: StockMovementRepository;
 };
 
-type RecordStockInResult = {
+type RecordStockOutResult = {
   movement: StockMovement;
   stock: number;
 };
 
-export async function recordStockIn(
+export async function recordStockOut(
   input: { productId: string; quantity: number },
   { products, movements }: Dependencies,
-): Promise<RecordStockInResult> {
+): Promise<RecordStockOutResult> {
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
     throw new InvalidStockQuantityError();
   }
@@ -35,9 +41,15 @@ export async function recordStockIn(
     throw new InactiveProductError();
   }
 
+  const currentStock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
+
+  if (input.quantity > currentStock) {
+    throw new InsufficientStockError();
+  }
+
   const movement = await movements.create({
     productId: input.productId,
-    type: "MASUK",
+    type: "KELUAR",
     quantity: input.quantity,
   });
   const stock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
