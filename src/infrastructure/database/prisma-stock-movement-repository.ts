@@ -56,20 +56,16 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     });
 
     let stock = 0;
-    let opnameSequence = 0;
-    let nextOpnameSequence = 1;
     const withStockAfter: StockMovementWithStockAfter[] = [];
 
     for (const row of rows) {
       if (row.type === "OPNAME") {
         stock = row.quantityAfter ?? 0;
-        opnameSequence = nextOpnameSequence;
       } else if (row.type === "MASUK") {
         stock += row.quantity;
       } else {
         stock -= row.quantity;
       }
-      nextOpnameSequence += 1;
       withStockAfter.push({ ...row, stockAfter: stock });
     }
 

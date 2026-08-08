@@ -19,6 +19,10 @@ class InMemoryProductRepository implements ProductRepository {
   async update(): Promise<Product | null> { throw new Error("not used"); }
   async deactivate(): Promise<boolean> { throw new Error("not used"); }
   async findActiveByName(): Promise<Product[]> { throw new Error("not used"); }
+  async findById(id: string): Promise<Product | null> {
+    return this.products.find((product) => product.id === id) ?? null;
+  }
+
   async findActiveById(id: string): Promise<Product | null> {
     return this.products.find((product) => product.id === id && product.active) ?? null;
   }

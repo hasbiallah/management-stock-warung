@@ -50,6 +50,10 @@ class InMemoryProductRepository implements ProductRepository {
     return true;
   }
 
+  async findById(id: string): Promise<Product | null> {
+    return this.products.find((product) => product.id === id) ?? null;
+  }
+
   async findActiveById(id: string): Promise<Product | null> {
     return this.products.find((product) => product.id === id && product.active) ?? null;
   }

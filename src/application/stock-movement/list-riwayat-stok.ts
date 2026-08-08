@@ -1,11 +1,9 @@
+import type { ProductRepository } from "@/domain/product/product-repository";
 import type {
+  StockMovementRepository,
   StockMovementType,
   StockMovementWithStockAfter,
 } from "@/domain/stock-movement/stock-movement-repository";
-import type {
-  ProductRepository,
-} from "@/domain/product/product-repository";
-import type { StockMovementRepository } from "@/domain/stock-movement/stock-movement-repository";
 
 export class ProductNotFoundError extends Error {
   constructor() {
@@ -40,15 +38,13 @@ export async function listRiwayatStok(
   input: { productId: string },
   { products, movements }: Dependencies,
 ): Promise<RiwayatStokEntry[]> {
-  const product = await products.findActiveById(input.productId);
+  const product = await products.findById(input.productId);
   if (!product) {
     throw new ProductNotFoundError();
   }
   const chronological = await movements.findByProductId(input.productId);
   return chronological.map(toEntry).reverse();
 }
-
-export { ProductNotFoundError as _ProductNotFoundError };
 
 function csvEscape(value: string): string {
   if (/[",\r\n]/.test(value)) {

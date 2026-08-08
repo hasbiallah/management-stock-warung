@@ -41,6 +41,11 @@ export class PrismaProductRepository implements ProductRepository {
     return result.count === 1;
   }
 
+  async findById(id: string): Promise<Product | null> {
+    const product = await prisma.product.findUnique({ where: { id } });
+    return product ? toProduct(product) : null;
+  }
+
   async findActiveById(id: string): Promise<Product | null> {
     const product = await prisma.product.findFirst({ where: { id, active: true } });
     return product ? toProduct(product) : null;

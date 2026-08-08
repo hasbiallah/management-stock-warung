@@ -19,6 +19,10 @@ class InMemoryProductRepository implements ProductRepository {
   async update(): Promise<Product | null> { throw new Error("not used"); }
   async deactivate(): Promise<boolean> { throw new Error("not used"); }
   async findActiveByName(): Promise<Product[]> { throw new Error("not used"); }
+  async findById(id: string): Promise<Product | null> {
+    return this.products.find((product) => product.id === id) ?? null;
+  }
+
   async findActiveById(id: string): Promise<Product | null> {
     return this.products.find((p) => p.id === id && p.active) ?? null;
   }
@@ -53,12 +57,16 @@ describe("listRiwayatStok", () => {
     await expect(listRiwayatStok({ productId: "x" }, { products, movements })).rejects.toBeInstanceOf(ProductNotFoundError);
   });
 
-  it("throws ProductNotFoundError for inactive product", async () => {
+  it("returns Riwayat Stok for an inactive Produk (FR-09: history is preserved)", async () => {
     const products = new InMemoryProductRepository([
       { id: "gula", name: "Gula", unit: "kg", sellingPrice: 1, minimumStock: 0, active: false },
     ]);
-    const movements = new InMemoryStockMovementRepository([]);
-    await expect(listRiwayatStok({ productId: "gula" }, { products, movements })).rejects.toBeInstanceOf(ProductNotFoundError);
+    const movements = new InMemoryStockMovementRepository([
+      makeMovement({ id: "1", productId: "gula", type: "MASUK", quantity: 4, stockAfter: 4 }),
+    ]);
+    await expect(listRiwayatStok({ productId: "gula" }, { products, movements })).resolves.toEqual([
+      { occurredAt: expect.any(Date), type: "MASUK", quantity: 4, reason: null, stockAfter: 4 },
+    ]);
   });
 
   it("returns entries newest-first with time, type, quantity, opname reason, and stock after each movement", async () => {
