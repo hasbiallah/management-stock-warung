@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { productInputSchema } from "@/presentation/product/product-input";
-import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
+import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
 type RouteContext = { params: { id: string } };
 

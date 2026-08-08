@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { ProductNotFoundError } from "@/application/stock-movement/list-riwayat-stok";
-import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
+import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
 function parseFormat(value: string | null): "json" | "csv" {
   return value === "csv" ? "csv" : "json";

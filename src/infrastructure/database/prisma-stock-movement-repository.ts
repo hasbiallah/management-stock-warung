@@ -1,5 +1,6 @@
 import { Prisma } from "@prisma/client";
 
+import { applyMovement } from "@/domain/stock-movement/stock-ledger";
 import type {
   CreateStockMovement,
   StockMovement,
@@ -20,30 +21,33 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     }
 
     const rows = await prisma.$queryRaw<Array<{ productId: string; stock: bigint }>>(Prisma.sql`
-      WITH sequenced_movements AS (
-        SELECT
-          \`productId\`, \`type\`, \`quantity\`, \`quantityAfter\`,
-          ROW_NUMBER() OVER (PARTITION BY \`productId\` ORDER BY \`createdAt\`, \`id\`) AS sequence_number
-        FROM \`StockMovement\`
-        WHERE \`productId\` IN (${Prisma.join(productIds)})
-      ), movement_bases AS (
-        SELECT \`productId\`, MAX(CASE WHEN \`type\` = 'OPNAME' THEN sequence_number ELSE 0 END) AS opname_sequence
-        FROM sequenced_movements
-        GROUP BY \`productId\`
-      )
       SELECT
-        movement.\`productId\` AS productId,
+        \`productId\` AS productId,
         CAST(
-          COALESCE(MAX(CASE WHEN movement.\`type\` = 'OPNAME' AND movement.sequence_number = base.opname_sequence THEN movement.\`quantityAfter\` END), 0)
+          COALESCE((
+            SELECT \`quantityAfter\`
+            FROM \`StockMovement\` AS latest_opname
+            WHERE latest_opname.\`productId\` = m.\`productId\`
+              AND latest_opname.\`type\` = 'OPNAME'
+            ORDER BY latest_opname.\`createdAt\` DESC, latest_opname.\`id\` DESC
+            LIMIT 1
+          ), 0)
           + COALESCE(SUM(CASE
-            WHEN movement.sequence_number > base.opname_sequence AND movement.\`type\` = 'MASUK' THEN movement.\`quantity\`
-            WHEN movement.sequence_number > base.opname_sequence AND movement.\`type\` = 'KELUAR' THEN -movement.\`quantity\`
+            WHEN m.\`type\` = 'MASUK' THEN m.\`quantity\`
+            WHEN m.\`type\` = 'KELUAR' THEN -m.\`quantity\`
             ELSE 0
-          END), 0) AS SIGNED
+          END), 0)
+          AS SIGNED
         ) AS stock
-      FROM sequenced_movements AS movement
-      INNER JOIN movement_bases AS base ON base.\`productId\` = movement.\`productId\`
-      GROUP BY movement.\`productId\`
+      FROM \`StockMovement\` AS m
+      WHERE m.\`productId\` IN (${Prisma.join(productIds)})
+        AND (m.\`createdAt\`, m.\`id\`) > (
+          SELECT COALESCE(MAX((opname.\`createdAt\`, opname.\`id\`)), (TIMESTAMP '1970-01-01', ''))
+          FROM \`StockMovement\` AS opname
+          WHERE opname.\`productId\` = m.\`productId\`
+            AND opname.\`type\` = 'OPNAME'
+        )
+      GROUP BY m.\`productId\`
     `);
 
     return Object.fromEntries(rows.map((row) => [row.productId, Number(row.stock)]));
@@ -59,13 +63,7 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     const withStockAfter: StockMovementWithStockAfter[] = [];
 
     for (const row of rows) {
-      if (row.type === "OPNAME") {
-        stock = row.quantityAfter ?? 0;
-      } else if (row.type === "MASUK") {
-        stock += row.quantity;
-      } else {
-        stock -= row.quantity;
-      }
+      stock = applyMovement(stock, row);
       withStockAfter.push({ ...row, stockAfter: stock });
     }
 

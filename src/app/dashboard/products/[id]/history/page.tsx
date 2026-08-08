@@ -4,7 +4,7 @@ import { getServerSession } from "next-auth";
 
 import { ProductNotFoundError } from "@/application/stock-movement/list-riwayat-stok";
 import { authOptions } from "@/app/auth";
-import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
+import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 import { RiwayatStokList } from "@/presentation/stock-movement/riwayat-stok-list";
 
 export const dynamic = "force-dynamic";
@@ -19,13 +19,6 @@ export default async function HistoryPage({ params }: PageProps) {
 
   try {
     const entries = await catalogueUseCases.listRiwayatStok({ productId: params.id });
-    const serialised = entries.map((entry) => ({
-      occurredAt: entry.occurredAt.toISOString(),
-      type: entry.type,
-      quantity: entry.quantity,
-      reason: entry.reason,
-      stockAfter: entry.stockAfter,
-    }));
 
     return (
       <main className="dashboard">
@@ -37,7 +30,7 @@ export default async function HistoryPage({ params }: PageProps) {
             </div>
             <a className="muted-link" href="/dashboard">← Kembali ke Katalog</a>
           </header>
-          <RiwayatStokList entries={serialised} productId={params.id} />
+          <RiwayatStokList entries={entries} productId={params.id} />
         </section>
       </main>
     );

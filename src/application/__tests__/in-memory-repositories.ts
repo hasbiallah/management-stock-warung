@@ -1,3 +1,4 @@
+import { applyMovement } from "@/domain/stock-movement/stock-ledger";
 import type {
   CreateProduct,
   Product,
@@ -82,13 +83,7 @@ export class InMemoryStockMovementRepository implements StockMovementRepository 
     let stock = 0;
     const withStockAfter: StockMovementWithStockAfter[] = [];
     for (const row of rows) {
-      if (row.type === "OPNAME") {
-        stock = row.quantityAfter ?? 0;
-      } else if (row.type === "MASUK") {
-        stock += row.quantity;
-      } else {
-        stock -= row.quantity;
-      }
+      stock = applyMovement(stock, row);
       withStockAfter.push({ ...row, stockAfter: stock });
     }
 
@@ -99,15 +94,9 @@ export class InMemoryStockMovementRepository implements StockMovementRepository 
     const result: Record<string, number> = {};
     for (const productId of productIds) {
       let stock = 0;
-      const productMovements = this.movements.filter((m) => m.productId === productId);
-      for (const movement of productMovements) {
-        if (movement.type === "OPNAME") {
-          stock = movement.quantityAfter ?? 0;
-        } else if (movement.type === "MASUK") {
-          stock += movement.quantity;
-        } else if (movement.type === "KELUAR") {
-          stock -= movement.quantity;
-        }
+      for (const movement of this.movements) {
+        if (movement.productId !== productId) continue;
+        stock = applyMovement(stock, movement);
       }
       result[productId] = stock;
     }

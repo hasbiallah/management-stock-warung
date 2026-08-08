@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { authOptions } from "@/app/auth";
 import { LogoutButton } from "@/presentation/auth/logout-button";
 import { ProductCatalogue } from "@/presentation/product/product-catalogue";
-import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
+import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
 export const dynamic = "force-dynamic";
 

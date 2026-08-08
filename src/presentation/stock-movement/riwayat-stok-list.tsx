@@ -2,13 +2,7 @@
 
 import Link from "next/link";
 
-export type RiwayatStokEntry = {
-  occurredAt: string;
-  type: "MASUK" | "KELUAR" | "OPNAME";
-  quantity: number;
-  reason: string | null;
-  stockAfter: number;
-};
+import type { RiwayatStokEntry } from "@/application/stock-movement/list-riwayat-stok";
 
 const typeLabels: Record<RiwayatStokEntry["type"], string> = {
   MASUK: "Stok Masuk",
@@ -16,11 +10,11 @@ const typeLabels: Record<RiwayatStokEntry["type"], string> = {
   OPNAME: "Opname",
 };
 
-function formatDateTime(iso: string): string {
+function formatDateTime(value: Date): string {
   return new Intl.DateTimeFormat("id-ID", {
     dateStyle: "short",
     timeStyle: "short",
-  }).format(new Date(iso));
+  }).format(value);
 }
 
 export function RiwayatStokList({
@@ -54,7 +48,7 @@ export function RiwayatStokList({
           </thead>
           <tbody>
             {entries.map((entry, index) => (
-              <tr key={`${entry.occurredAt}-${index}`}>
+              <tr key={`${entry.occurredAt.toISOString()}-${index}`}>
                 <td>{formatDateTime(entry.occurredAt)}</td>
                 <td>{typeLabels[entry.type]}</td>
                 <td>{entry.quantity}</td>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { EmptyReasonError, InactiveProductError, InvalidOpnameQuantityError } from "@/application/stock-movement/record-opname";
 import { opnameInputSchema } from "@/presentation/stock-movement/opname-input";
-import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
+import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
 export async function POST(request: Request) {
   const input = opnameInputSchema.safeParse(await request.json());

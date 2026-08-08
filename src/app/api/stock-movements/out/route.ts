@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { InactiveProductError, InsufficientStockError, InvalidStockOutQuantityError } from "@/application/stock-movement/record-stock-out";
 import { stockOutInputSchema } from "@/presentation/stock-movement/stock-out-input";
-import { catalogueUseCases } from "@/presentation/stock-movement/catalogue-dependencies";
+import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
 export async function POST(request: Request) {
   const input = stockOutInputSchema.safeParse(await request.json());
