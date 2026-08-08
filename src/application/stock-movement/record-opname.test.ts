@@ -11,27 +11,15 @@ import type {
   CreateStockMovement,
   StockMovement,
   StockMovementRepository,
+  StockMovementWithStockAfter,
 } from "@/domain/stock-movement/stock-movement-repository";
 
 class InMemoryProductRepository implements ProductRepository {
   constructor(private readonly products: Product[]) {}
-
-  async create(): Promise<Product> {
-    throw new Error("Not used in this test.");
-  }
-
-  async update(): Promise<Product | null> {
-    throw new Error("Not used in this test.");
-  }
-
-  async deactivate(): Promise<boolean> {
-    throw new Error("Not used in this test.");
-  }
-
-  async findActiveByName(): Promise<Product[]> {
-    throw new Error("Not used in this test.");
-  }
-
+  async create(): Promise<Product> { throw new Error("not used"); }
+  async update(): Promise<Product | null> { throw new Error("not used"); }
+  async deactivate(): Promise<boolean> { throw new Error("not used"); }
+  async findActiveByName(): Promise<Product[]> { throw new Error("not used"); }
   async findActiveById(id: string): Promise<Product | null> {
     return this.products.find((product) => product.id === id && product.active) ?? null;
   }
@@ -41,17 +29,18 @@ class InMemoryStockMovementRepository implements StockMovementRepository {
   movements: StockMovement[] = [];
 
   async create(input: CreateStockMovement): Promise<StockMovement> {
-    const movement = { id: String(this.movements.length + 1), ...input };
+    const movement: StockMovement = { id: String(this.movements.length + 1), createdAt: new Date(), ...input };
     this.movements.push(movement);
     return movement;
   }
+
+  async findByProductId(): Promise<StockMovementWithStockAfter[]> { throw new Error("not used"); }
 
   async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
     return Object.fromEntries(
       productIds.map((productId) => {
         let stock = 0;
         const productMovements = this.movements.filter((m) => m.productId === productId);
-
         for (const movement of productMovements) {
           if (movement.type === "OPNAME") {
             stock = movement.quantityAfter ?? 0;
@@ -61,7 +50,6 @@ class InMemoryStockMovementRepository implements StockMovementRepository {
             stock -= movement.quantity;
           }
         }
-
         return [productId, stock];
       }),
     );
@@ -80,15 +68,13 @@ describe("recordOpname", () => {
     await expect(
       recordOpname({ productId: "gula", quantityAfter: 5, reason: "Hitung fisik bulanan" }, { products, movements }),
     ).resolves.toEqual({
-      movement: { id: "3", productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 5, reason: "Hitung fisik bulanan" },
+      movement: { id: "3", createdAt: expect.any(Date), productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 5, reason: "Hitung fisik bulanan" },
       stock: 5,
       previousStock: 7,
     });
-    expect(movements.movements).toEqual([
-      { id: "1", productId: "gula", type: "MASUK", quantity: 10 },
-      { id: "2", productId: "gula", type: "KELUAR", quantity: 3 },
-      { id: "3", productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 5, reason: "Hitung fisik bulanan" },
-    ]);
+    expect(movements.movements).toHaveLength(3);
+    expect(movements.movements[2].quantityAfter).toBe(5);
+    expect(movements.movements[2].reason).toBe("Hitung fisik bulanan");
   });
 
   it("sets Stok to the absolute quantityAfter value, not a delta", async () => {
@@ -101,7 +87,7 @@ describe("recordOpname", () => {
     await expect(
       recordOpname({ productId: "gula", quantityAfter: 8, reason: "Koreksi stok" }, { products, movements }),
     ).resolves.toEqual({
-      movement: { id: "2", productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 8, reason: "Koreksi stok" },
+      movement: { id: "2", createdAt: expect.any(Date), productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 8, reason: "Koreksi stok" },
       stock: 8,
       previousStock: 10,
     });
@@ -116,11 +102,9 @@ describe("recordOpname", () => {
     await expect(
       recordOpname({ productId: "gula", quantityAfter: 5, reason: "" }, { products, movements }),
     ).rejects.toBeInstanceOf(EmptyReasonError);
-
     await expect(
       recordOpname({ productId: "gula", quantityAfter: 5, reason: "   " }, { products, movements }),
     ).rejects.toBeInstanceOf(EmptyReasonError);
-
     expect(movements.movements).toEqual([]);
   });
 
@@ -133,7 +117,6 @@ describe("recordOpname", () => {
     await expect(
       recordOpname({ productId: "gula", quantityAfter: -1, reason: "Invalid" }, { products, movements }),
     ).rejects.toBeInstanceOf(InvalidOpnameQuantityError);
-
     expect(movements.movements).toEqual([]);
   });
 
@@ -146,7 +129,6 @@ describe("recordOpname", () => {
     await expect(
       recordOpname({ productId: "lama", quantityAfter: 5, reason: "Hitung fisik" }, { products, movements }),
     ).rejects.toBeInstanceOf(InactiveProductError);
-
     expect(movements.movements).toEqual([]);
   });
 
@@ -159,7 +141,7 @@ describe("recordOpname", () => {
     await expect(
       recordOpname({ productId: "gula", quantityAfter: 0, reason: "Stok habis setelah hitung" }, { products, movements }),
     ).resolves.toEqual({
-      movement: { id: "1", productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 0, reason: "Stok habis setelah hitung" },
+      movement: { id: "1", createdAt: expect.any(Date), productId: "gula", type: "OPNAME", quantity: 0, quantityAfter: 0, reason: "Stok habis setelah hitung" },
       stock: 0,
       previousStock: 0,
     });

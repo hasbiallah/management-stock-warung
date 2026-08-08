@@ -13,6 +13,7 @@ import type {
   UpdateProduct,
 } from "@/domain/product/product-repository";
 import type {
+  StockMovementWithStockAfter,
   CreateStockMovement,
   StockMovement,
   StockMovementRepository,
@@ -65,6 +66,10 @@ class InMemoryStockMovementRepository implements StockMovementRepository {
 
   async create(_: CreateStockMovement): Promise<StockMovement> {
     throw new Error("Not used in this test.");
+  }
+
+  async findByProductId(): Promise<StockMovementWithStockAfter[]> {
+    return [];
   }
 
   async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {

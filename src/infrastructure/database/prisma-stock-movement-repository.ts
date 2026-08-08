@@ -4,6 +4,7 @@ import type {
   CreateStockMovement,
   StockMovement,
   StockMovementRepository,
+  StockMovementWithStockAfter,
 } from "@/domain/stock-movement/stock-movement-repository";
 
 import { prisma } from "./prisma-client";
@@ -46,5 +47,32 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     `);
 
     return Object.fromEntries(rows.map((row) => [row.productId, Number(row.stock)]));
+  }
+
+  async findByProductId(productId: string): Promise<StockMovementWithStockAfter[]> {
+    const rows = await prisma.stockMovement.findMany({
+      where: { productId },
+      orderBy: [{ createdAt: "asc" }, { id: "asc" }],
+    });
+
+    let stock = 0;
+    let opnameSequence = 0;
+    let nextOpnameSequence = 1;
+    const withStockAfter: StockMovementWithStockAfter[] = [];
+
+    for (const row of rows) {
+      if (row.type === "OPNAME") {
+        stock = row.quantityAfter ?? 0;
+        opnameSequence = nextOpnameSequence;
+      } else if (row.type === "MASUK") {
+        stock += row.quantity;
+      } else {
+        stock -= row.quantity;
+      }
+      nextOpnameSequence += 1;
+      withStockAfter.push({ ...row, stockAfter: stock });
+    }
+
+    return withStockAfter;
   }
 }
