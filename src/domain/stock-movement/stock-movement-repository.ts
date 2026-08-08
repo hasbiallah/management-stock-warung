@@ -16,6 +16,6 @@ export type StockMovementWithStockAfter = StockMovement & { stockAfter: number }
 
 export interface StockMovementRepository {
   create(input: CreateStockMovement): Promise<StockMovement>;
-  findCurrentStocks(productIds: string[]): Promise<Record<string, number>>;
+  computeStocks(productIds: string[]): Promise<Record<string, number>>;
   findByProductId(productId: string): Promise<StockMovementWithStockAfter[]>;
 }

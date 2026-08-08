@@ -90,7 +90,7 @@ export class InMemoryStockMovementRepository implements StockMovementRepository 
     return withStockAfter;
   }
 
-  async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
+  async computeStocks(productIds: string[]): Promise<Record<string, number>> {
     const result: Record<string, number> = {};
     for (const productId of productIds) {
       let stock = 0;

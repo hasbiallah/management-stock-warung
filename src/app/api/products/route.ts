@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { parseJsonBody } from "@/presentation/api/parse-json-body";
 import { productInputSchema } from "@/presentation/product/product-input";
 import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
@@ -9,15 +10,9 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  const input = productInputSchema.safeParse(await request.json());
+  const parsed = await parseJsonBody(request, productInputSchema);
+  if (!parsed.ok) return parsed.response;
 
-  if (!input.success) {
-    return NextResponse.json(
-      { error: input.error.issues[0]?.message ?? "Data Produk tidak valid." },
-      { status: 400 },
-    );
-  }
-
-  const product = await catalogueUseCases.createProduct(input.data);
+  const product = await catalogueUseCases.createProduct(parsed.data);
   return NextResponse.json(product, { status: 201 });
 }

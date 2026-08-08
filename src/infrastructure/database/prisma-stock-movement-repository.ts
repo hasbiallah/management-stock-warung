@@ -13,7 +13,7 @@ export class PrismaStockMovementRepository implements StockMovementRepository {
     return prisma.stockMovement.create({ data: input });
   }
 
-  async findCurrentStocks(productIds: string[]): Promise<Record<string, number>> {
+  async computeStocks(productIds: string[]): Promise<Record<string, number>> {
     const result: Record<string, number> = {};
     for (const productId of productIds) {
       result[productId] = (await this.replayForProduct(productId)).current;

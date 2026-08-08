@@ -1,13 +1,13 @@
-import type { ProductRepository } from "@/domain/product/product-repository";
 import type {
   StockMovement,
   StockMovementRepository,
 } from "@/domain/stock-movement/stock-movement-repository";
 import {
-  InactiveProductError,
-  InvalidStockOutQuantityError,
   InsufficientStockError,
+  InvalidStockOutQuantityError,
 } from "./stock-movement-errors";
+import { loadActiveProductStock } from "./load-active-product-stock";
+import type { RecordStockMovementDependencies, RecordStockMovementResult } from "./record-stock-in";
 
 export {
   InactiveProductError,
@@ -15,39 +15,21 @@ export {
   InsufficientStockError,
 } from "./stock-movement-errors";
 
-type Dependencies = {
-  products: ProductRepository;
-  movements: StockMovementRepository;
-};
-
-type RecordStockOutResult = {
-  movement: StockMovement;
-  stock: number;
-};
-
 export async function recordStockOut(
   input: { productId: string; quantity: number },
-  { products, movements }: Dependencies,
-): Promise<RecordStockOutResult> {
+  deps: RecordStockMovementDependencies,
+): Promise<RecordStockMovementResult> {
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
     throw new InvalidStockOutQuantityError();
   }
-
-  if (!(await products.findActiveById(input.productId))) {
-    throw new InactiveProductError();
-  }
-
-  const currentStock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
-
+  const { currentStock } = await loadActiveProductStock(input.productId, deps);
   if (input.quantity > currentStock) {
     throw new InsufficientStockError();
   }
-
-  const movement = await movements.create({
+  const movement = await deps.movements.create({
     productId: input.productId,
     type: "KELUAR",
     quantity: input.quantity,
   });
-
   return { movement, stock: currentStock - input.quantity };
 }

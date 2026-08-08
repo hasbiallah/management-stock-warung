@@ -128,7 +128,7 @@ export function OpnameForm({ products, onRecorded }: OpnameFormProps) {
               id="opname-reason"
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Contoh: Hitung fisik bulanan, ada barang rusak, koreksi stok"
+              placeholder="Contoh: Hitung fisik bulanan, ada barang rusak di rak"
               rows={3}
               required
             />

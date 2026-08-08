@@ -51,7 +51,7 @@ export async function listActiveProducts(
 ): Promise<CatalogueProduct[]> {
   const activeProducts = await products.findActiveByName(query.trim());
   const productIds = activeProducts.map((product) => product.id);
-  const currentStocks = await movements.findCurrentStocks(productIds);
+  const currentStocks = await movements.computeStocks(productIds);
 
   return activeProducts.map((product) => {
     const stock = currentStocks[product.id] ?? 0;

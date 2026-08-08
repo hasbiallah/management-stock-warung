@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import { ProductNotFoundError } from "@/application/stock-movement/list-riwayat-stok";
+import { ProductNotFoundError, listRiwayatStok, serialiseRiwayatStokToCsv } from "@/application/stock-movement";
+import { stockMovementErrorResponse } from "@/presentation/api/handle-stock-movement-error";
 import { catalogueUseCases } from "@/presentation/catalogue/use-cases";
 
 function parseFormat(value: string | null): "json" | "csv" {
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     const entries = await catalogueUseCases.listRiwayatStok({ productId });
 
     if (format === "csv") {
-      const csv = catalogueUseCases.serialiseRiwayatStokToCsv(entries);
+      const csv = serialiseRiwayatStokToCsv(entries);
       return new NextResponse(csv, {
         status: 200,
         headers: {
@@ -35,6 +36,7 @@ export async function GET(request: Request) {
     if (error instanceof ProductNotFoundError) {
       return NextResponse.json({ error: error.message }, { status: 404 });
     }
+    if (error instanceof Error) return stockMovementErrorResponse(error);
     throw error;
   }
 }

@@ -15,7 +15,6 @@ export class PrismaOwnerAccountRepository implements OwnerAccountRepository {
     return prisma.ownerAccount.create({
       data: {
         ...account,
-        singleton: true,
       },
     });
   }

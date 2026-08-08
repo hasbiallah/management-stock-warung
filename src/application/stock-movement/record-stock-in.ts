@@ -3,38 +3,33 @@ import type {
   StockMovement,
   StockMovementRepository,
 } from "@/domain/stock-movement/stock-movement-repository";
-import { InactiveProductError, InvalidStockInQuantityError } from "./stock-movement-errors";
+import { InvalidStockInQuantityError } from "./stock-movement-errors";
+import { loadActiveProductStock } from "./load-active-product-stock";
 
 export { InactiveProductError, InvalidStockInQuantityError } from "./stock-movement-errors";
 
-type Dependencies = {
+export type RecordStockMovementDependencies = {
   products: ProductRepository;
   movements: StockMovementRepository;
 };
 
-type RecordStockInResult = {
+export type RecordStockMovementResult = {
   movement: StockMovement;
   stock: number;
 };
 
 export async function recordStockIn(
   input: { productId: string; quantity: number },
-  { products, movements }: Dependencies,
-): Promise<RecordStockInResult> {
+  deps: RecordStockMovementDependencies,
+): Promise<RecordStockMovementResult> {
   if (!Number.isInteger(input.quantity) || input.quantity <= 0) {
     throw new InvalidStockInQuantityError();
   }
-
-  if (!(await products.findActiveById(input.productId))) {
-    throw new InactiveProductError();
-  }
-
-  const currentStock = (await movements.findCurrentStocks([input.productId]))[input.productId] ?? 0;
-  const movement = await movements.create({
+  const { currentStock } = await loadActiveProductStock(input.productId, deps);
+  const movement = await deps.movements.create({
     productId: input.productId,
     type: "MASUK",
     quantity: input.quantity,
   });
-
   return { movement, stock: currentStock + input.quantity };
 }
