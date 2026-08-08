@@ -4,6 +4,7 @@ import Link from "next/link";
 import { FormEvent, useState } from "react";
 
 import type { CatalogueProduct } from "@/application/product/manage-product-catalogue";
+import { StokRendahSection } from "@/presentation/catalogue/stok-rendah-section";
 import { OpnameForm } from "@/presentation/stock-movement/opname-form";
 import { StockMovementForm } from "@/presentation/stock-movement/stock-movement-form";
 
@@ -96,31 +97,7 @@ export function ProductCatalogue({ initialProducts }: { initialProducts: Catalog
 
   return (
     <>
-      <section className="low-stock-section" aria-labelledby="low-stock-title">
-        <div className="catalogue-heading">
-          <div>
-            <span className="eyebrow">Stok Rendah</span>
-            <h2 id="low-stock-title">Produk yang perlu direstock</h2>
-            <p>Produk dengan Stok di bawah Stok Minimum masing-masing.</p>
-          </div>
-        </div>
-        {(() => {
-          const lowStockProducts = products.filter((product) => product.isLowStock);
-          if (lowStockProducts.length === 0) {
-            return <p className="empty-state">Tidak ada Produk dalam kondisi Stok Rendah.</p>;
-          }
-          return (
-            <ul className="low-stock-list">
-              {lowStockProducts.map((product) => (
-                <li key={product.id}>
-                  <span><strong>{product.name}</strong> ({product.unit})</span>
-                  <span><strong>{product.stock}</strong> / Stok Minimum {product.minimumStock}</span>
-                </li>
-              ))}
-            </ul>
-          );
-        })()}
-      </section>
+      <StokRendahSection products={products} />
       <StockMovementForm products={products} movementType="MASUK" onRecorded={loadProducts} />
       <StockMovementForm products={products} movementType="KELUAR" onRecorded={loadProducts} />
       <OpnameForm products={products} onRecorded={loadProducts} />
