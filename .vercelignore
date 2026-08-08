@@ -1,0 +1,12 @@
+.env
+.env.local
+.env*.local
+node_modules
+*.log
+.DS_Store
+.idea
+.vscode
+*.test.ts
+*.test.tsx
+__tests__
+coverage

@@ -1,5 +1,7 @@
-# Docs & planning
+# Docs & planning - allow deployment guide
 *.md
+DEPLOYMENT_GUIDE.md
+!README.md
 docs/
 
 # Agent skills & config
